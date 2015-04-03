@@ -1,5 +1,6 @@
 import getpass
 from xml.etree.ElementTree import ElementTree, fromstring
+from xml.sax.saxutils import escape
 import logging
 
 template = """
@@ -19,7 +20,7 @@ template = """
 """
 
 def get_xml(name, uri):
-    return template.format(title=name, genre=name, uri=uri)
+    return template.format(title=escape(name), genre=escape(name), uri=uri)
 
 def get_entry(title, uri, genre):
     return fromstring(get_xml(title, uri))
@@ -38,3 +39,12 @@ class Rhythmbox(object):
     def finish(self):
         logging.info('Saving file')
         self.tree.write(self.path, xml_declaration=True)
+
+    def delete_all(self):
+        iradios = self.root.findall('./entry[@type="iradio"]')
+        for iradio in iradios:
+            if 'di.fm' in iradio.find('location').text:
+                logging.info('Removing %s' % iradio.find('title').text)
+                self.root.remove(iradio)
+
+        self.finish()
