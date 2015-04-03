@@ -1,66 +1,35 @@
-#!/usr/bin/env python
-import os
-import re
 import sys
-import urllib
-import urlparse
 import logging
-import json
+from optparse import OptionParser, Option
 
-# export backends
-from exaile import Exaile
-from rhythmbox import Rhythmbox
-from dummy import Dummy
+parser = OptionParser()
+parser.add_option("-s", "--source", dest="sources", default='digitally_imported',
+	action="append", help="radio station sources.")
+parser.add_option("-t", "--target", dest="targets",
+	action="append", help="where to import stations.")
+parser.add_option("-q", "--quiet",
+	action="store_false", dest="verbose", default=True,
+	help="don't print status messages to stdout")
 
-class WindowsOpener(urllib.FancyURLopener):
-    version = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15'
 
-re_mount_point = re.compile('(/.*)')
+if __name__ == '__main__':
+	logging.basicConfig(level=logging.INFO)
+	(options, args) = parser.parse_args()
 
-def process(url, backend):
-    myopener = WindowsOpener()
-    page = myopener.open(url)
+	print options
+	logging.info('Exporting.')
 
-    logging.info('Loading page.')
-    text = page.read()
-    page.close()
+	# import radio stations
+	import digitally_imported
+	# stations = digitally_imported.get_stations()
 
-    logging.info('Parsing.')
-    radio_list = json.loads(text)
+	# for every target
+	for target in options.targets:
+		# import backend
+		module = __import__(target)
+		export_object = module.Export()
 
-    logging.info('Processing stations.')
-    stations = {}
-
-    hrefs = {}
-    for station in radio_list:
-        if station['key'] in hrefs.keys():
-            logging.debug('Skipping %s' % station['uri'])
-            continue
-
-        stations[station['key']] = {
-            'genre': station['name'],
-            'key': station['key'],
-            'uri': station['playlist'],
-        }
-
-    logging.info('Exporting.')
-    # export to backend
-    for href, radio in stations.iteritems():
-        backend.add(radio['genre'], radio['uri'])
-    backend.finish()
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-    backend = Rhythmbox()
-    if len(sys.argv) == 1:
-        url = 'http://listen.di.fm/public2'
-        process(url, backend)
-    else:
-        for url in sys.argv[1:]:
-            process(url, backend)
-
-#############################################################################
-
-if __name__ == "__main__":
-    main()
-
+		# iterate stations
+		for key, radio in stations.iteritems():
+			export_object.add(radio['genre'], radio['uri'])
+		export_object.finish()

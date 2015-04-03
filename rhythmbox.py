@@ -48,3 +48,6 @@ class Rhythmbox(object):
                 self.root.remove(iradio)
 
         self.finish()
+
+class Export(Rhythmbox):
+    pass
