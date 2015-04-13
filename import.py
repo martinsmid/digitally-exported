@@ -1,5 +1,6 @@
 import os
 import sys
+import yaml
 import logging
 from optparse import OptionParser, Option
 
@@ -16,11 +17,12 @@ parser.add_option("-q", "--quiet",
 
 
 if __name__ == '__main__':
-	logging.basicConfig(level=logging.INFO)
 	(options, args) = parser.parse_args()
+	logging.basicConfig(
+		level=logging.INFO if options.verbose else logging.ERROR,
+		format='%(message)s')
 
-	print options
-	logging.info('Exporting.')
+	logging.info(yaml.dump(vars(options)))
 
 	# import radio stations
 	from sources import digitally_imported
