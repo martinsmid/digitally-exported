@@ -1,3 +1,5 @@
+import os
+import logging
 
 def get_file_content(link, name):
     content = """{link}
@@ -29,3 +31,6 @@ class Exaile(object):
 
     def finish(self):
         self.order_file.write('EOF\n')
+
+class Export(Exaile):
+    pass

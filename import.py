@@ -1,6 +1,9 @@
+import os
 import sys
 import logging
 from optparse import OptionParser, Option
+
+import targets
 
 parser = OptionParser()
 parser.add_option("-s", "--source", dest="sources", default='digitally_imported',
@@ -20,14 +23,14 @@ if __name__ == '__main__':
 	logging.info('Exporting.')
 
 	# import radio stations
-	import digitally_imported
-	# stations = digitally_imported.get_stations()
+	from sources import digitally_imported
+	stations = digitally_imported.get_stations()
 
 	# for every target
 	for target in options.targets:
 		# import backend
-		module = __import__(target)
-		export_object = module.Export()
+		target_module = getattr(targets, target)
+		export_object = target_module.Export()
 
 		# iterate stations
 		for key, radio in stations.iteritems():
